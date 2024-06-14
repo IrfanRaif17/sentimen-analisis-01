@@ -1,24 +1,23 @@
 import streamlit as st
+
+# Set the page configuration at the top of the script
+st.set_page_config(page_title="Analisis Sentimen App", page_icon="icon/simple.png")
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score
 from page.fetch import display_pie_chart
 
 import page.home
-import page.Pendeteksi
-import page.optimalisasi    
+import page.Pendeteksi   
 import page.analisissentimen
-import page.analisissentimenvader
 import page.ConfusionMatrix
 
 PAGES = {
     "Beranda": page.home,
     "Pendeteksi Kata Slang": page.Pendeteksi,
-    "Optimalisasi Pra-proses": page.optimalisasi,
     "Analisis Sentimen InSet":page.analisissentimen,
-    "Analisis Sentimen Vader":page.analisissentimenvader,
     "Evaluasi Matrix":page.ConfusionMatrix,
-
 }
 
 def set_page_config():
@@ -43,11 +42,10 @@ def set_page_config():
 
 def main():
     set_page_config()
-    
+
     st.sidebar.markdown('<p style="font-family: Times New Roman; font-size: 24px; font-weight: bold;">Natural Language Processing</p>', unsafe_allow_html=True)
     
     page = st.sidebar.radio("Pre-processing", list(PAGES.keys()))
-
 
     with st.spinner(f"Loading {page} ..."):
         PAGES[page].main()
@@ -60,7 +58,6 @@ def main():
         antara analisis sentimen asli dan analisis sentimen yang sudah dilakukan preprocessing.
         """
     )
-    
 
 if __name__ == "__main__":
     main()

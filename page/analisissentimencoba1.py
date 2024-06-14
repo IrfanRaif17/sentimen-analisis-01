@@ -75,25 +75,6 @@ def sentiment_analysis_lexicon_indonesia(text, lexicon_positive, lexicon_negativ
         polarity = 'neutral'
     return score, polarity, positive_found, negative_found
 
-# Function to group all positive/negative words
-def words_with_sentiment(text, lexicon_positive, lexicon_negative):
-    positive_words=[]
-    negative_words=[]
-    for word in text:
-        score_pos = 0
-        score_neg = 0
-        if (word in lexicon_positive):
-            score_pos = lexicon_positive[word]
-        if (word in lexicon_negative):
-            score_neg = lexicon_negative[word]
-        
-        if (score_pos + score_neg > 0):
-            positive_words.append(word)
-        elif (score_pos + score_neg < 0):
-            negative_words.append(word)
-            
-    return positive_words, negative_words
-
 def main():
     st.markdown('<p style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Analisis Sentimen InSet</p>', unsafe_allow_html=True)
 
@@ -166,8 +147,8 @@ def main():
                     st.write(data[['text_cleaning']])
 
                 # Upload leksikon positif dan negatif
-                uploaded_lexicon_positive = st.file_uploader("Upload lexicon positif.CSV", type="csv")
-                uploaded_lexicon_negative = st.file_uploader("Upload lexicon negatif.CSV", type="csv")
+                uploaded_lexicon_positive = st.file_uploader("Upload leksikon positif CSV", type="csv")
+                uploaded_lexicon_negative = st.file_uploader("Upload leksikon negatif CSV", type="csv")
                 
                 if uploaded_lexicon_positive and uploaded_lexicon_negative:
                     lexicon_positive = {}
@@ -205,7 +186,7 @@ def main():
                     labels = list(data['polarity'].value_counts().index)
                     explode = [0.1 if i == 0 else 0 for i in range(len(sizes))]
                     ax.pie(x=sizes, labels=labels, autopct='%1.1f%%', explode=explode, textprops={'fontsize': 14})
-                    ax.set_title('Sentiment Polarity on Tweets Data \n Persentase Polarity dari Semua data', fontsize=16, pad=20)
+                    ax.set_title('Sentiment Polarity on Tweets Data', fontsize=16, pad=20)
                     st.pyplot(fig)
                     
                     list_words = ''
@@ -215,45 +196,13 @@ def main():
                     
                     wordcloud = WordCloud(width=600, height=400, min_font_size=10).generate(list_words)
                     fig, ax = plt.subplots(figsize=(8, 6))
-                    st.write("Sebaran Semua data yang Paling Bnayak Muncul:")
-                    ax.set_title('Word Cloud of Tweets Data \n Semakin Besar Kata Semakin Banyak jumlah frekuensi', fontsize=18)
+                    ax.set_title('Word Cloud of Tweets Data', fontsize=18)
                     ax.grid(False)
                     ax.imshow(wordcloud)
                     ax.axis('off')
                     st.pyplot(fig)
-
-                    # Visualize positive and negative word clouds
-                    sentiment_words = data['tweet_tokens'].apply(lambda x: words_with_sentiment(x, lexicon_positive, lexicon_negative))
-                    sentiment_words = list(zip(*sentiment_words))
-                    positive_words = sentiment_words[0]
-                    negative_words = sentiment_words[1]
-
-                    fig, ax = plt.subplots(1, 2, figsize=(12, 10))
-                    list_words_positive = ''
-                    for row_word in positive_words:
-                        for word in row_word:
-                            list_words_positive += ' ' + (word)
-                    wordcloud_positive = WordCloud(width=800, height=600, background_color='black', colormap='Greens', min_font_size=10).generate(list_words_positive)
-                    st.write("Sebaran Data Positive dan Negative:")
-                    ax[0].set_title('Word Cloud of Positive Words on Tweets Data \n (based on Indonesia Sentiment Lexicon)', fontsize=14)
-                    ax[0].grid(False)
-                    ax[0].imshow(wordcloud_positive)
-                    fig.tight_layout(pad=0)
-                    ax[0].axis('off')
-
-                    list_words_negative = ''
-                    for row_word in negative_words:
-                        for word in row_word:
-                            list_words_negative += ' ' + (word)
-                    wordcloud_negative = WordCloud(width=800, height=600, background_color='black', colormap='Reds', min_font_size=10).generate(list_words_negative)
-                    ax[1].set_title('Word Cloud of Negative Words on Tweets Data \n (based on Indonesia Sentiment Lexicon)', fontsize=14)
-                    ax[1].grid(False)
-                    ax[1].imshow(wordcloud_negative)
-                    fig.tight_layout(pad=0)
-                    ax[1].axis('off')
-                    st.pyplot(fig)
     else:
-        st.write("Unggah file CSV untuk memulai.")
+        st.write("Harap unggah file CSV untuk memulai.")
 
 if __name__ == "__main__":
     main()

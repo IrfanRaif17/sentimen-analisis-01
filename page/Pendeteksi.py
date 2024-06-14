@@ -6,15 +6,18 @@ import csv
 import string
 import unicodedata
 from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer
 import base64
+from page import ConfusionMatrix
+
+nltk.download('stopwords')
 
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Set up stopwords and stemmer
+nltk.download('stopwords')
+nltk.download('punkt')
 stopwords = set(nltk.corpus.stopwords.words('indonesian'))
-stemmer = PorterStemmer()
 
 # Fungsi untuk memisahkan hashtag dalam kalimat
 def pisahkan_hashtag(kalimat):
@@ -168,14 +171,22 @@ def main():
         try:
             kamus_kbbi = muat_kamus_kbbi(uploaded_file_kamus)
 
-            # Upload file data yang akan diproses
+            # Unggah file
             uploaded_file_data = st.file_uploader("Upload file data yang akan diproses", type=["csv"])
-
+            
             if uploaded_file_data is not None:
+                # Baca file CSV
                 df_data = pd.read_csv(uploaded_file_data, encoding='utf-8')
 
-                # Memisahkan hashtag
-                df_data['split_hashtag'] = df_data['text'].apply(pisahkan_hashtag)
+            # Tampilkan kolom yang tersedia untuk dipilih
+                st.write("Kolom yang tersedia dalam data:")
+                st.write(df_data.columns.tolist())
+
+            # Pilih kolom yang berisi teks
+                kolom_teks = st.selectbox("Pilih kolom yang berisi teks:", df_data.columns)
+
+                # Memisahkan hashtag dari kolom yang dipilih
+                df_data['split_hashtag'] = df_data[kolom_teks].apply(pisahkan_hashtag)
 
                 # Preprocessing
                 df_data['preprocessing'] = df_data['split_hashtag'].apply(preprocess)
@@ -194,28 +205,53 @@ def main():
                 kata_tidak_baku_unik = set([kata for sublist in df_data['kata_tidak_baku_clean'] for kata in sublist])
 
                 st.write("Kata Tidak Baku:")
-                if kata_tidak_baku_unik:
-                    # Export to text file
-                    if st.button("Export ke TXT"):
-                        file_name = ("kamus_slang_new.txt")
-                        try:
-                            export_to_txt(kata_tidak_baku_unik, file_name)
-                            st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
-                        except Exception as e:
-                            st.error("Terjadi kesalahan dalam proses ekspor ke TXT.")
-                            st.error(str(e))
 
-                    # Export to CSV file
-                    if st.button("Export ke CSV"):
-                        file_name = ("kamus_slang_new.csv")
-                        try:
-                            export_to_csv(kata_tidak_baku_unik, file_name)
-                            st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
-                        except Exception as e:
-                            st.error("Terjadi kesalahan dalam proses ekspor ke CSV.")
-                            st.error(str(e))
-                else:
-                    st.write("Tidak ada kata tidak baku.")
+                # Fungsi untuk mengekspor ke file teks dan menghasilkan tautan unduh
+                def export_to_txt(kata_tidak_baku_unik, output_file):
+                    with open(output_file, 'w', encoding='utf-8') as f:
+                        for kata in kata_tidak_baku_unik:
+                            f.write(f"'{kata}':'....',\n")
+
+                    # Create href tag to download the file
+                    href = get_download_link(output_file, 'TXT')
+
+                    # Display the download link
+                    st.markdown(href, unsafe_allow_html=True)
+
+                # Fungsi untuk mengekspor ke file CSV dan menghasilkan tautan unduh
+                def export_to_csv(kata_tidak_baku_unik, output_file):
+                    data = []
+                    for kata in kata_tidak_baku_unik:
+                        data.append([kata, "...."])
+
+                    df_output = pd.DataFrame(data, columns=["tidak_baku", "normalisasi"])
+                    df_output.to_csv(output_file, index=False, encoding='utf-8')
+
+                    # Create href tag to download the file
+                    href = get_download_link(output_file, 'CSV')
+
+                    # Display the download link
+                    st.markdown(href, unsafe_allow_html=True)
+
+                # Fungsi untuk menghasilkan tautan unduh file
+                def get_download_link(file_path, file_type):
+                    with open(file_path, 'rb') as file:
+                        contents = file.read()
+                        base64_encoded = base64.b64encode(contents).decode()
+                        href = f'<a href="data:text/{file_type};base64,{base64_encoded}" download="{file_path}">Download {file_type}</a>'
+                    return href
+
+                # Export to text file
+                if st.button("Export ke TXT"):
+                    file_name = "kamus_slang_new.txt"
+                    export_to_txt(kata_tidak_baku_unik, file_name)
+                    st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
+
+                # Export to CSV file
+                if st.button("Export ke CSV"):
+                    file_name = "kamus_slang_new.csv"
+                    export_to_csv(kata_tidak_baku_unik, file_name)
+                    st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
 
         except Exception as e:
             st.error("Terjadi kesalahan dalam membaca file.")

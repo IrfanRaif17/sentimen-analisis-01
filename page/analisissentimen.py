@@ -10,8 +10,15 @@ import matplotlib.pyplot as plt
 import csv
 import nltk
 
-nltk.download('punkt')
-nltk.download('stopwords')
+# Set NLTK data directory
+nltk.data.path.append("/path/to/nltk_data")
+
+# Download 'punkt' if not already downloaded
+if not nltk.data.find('tokenizers/punkt'):
+    nltk.download('punkt', download_dir='/path/to/download_directory')
+
+# Rest of your imports and code
+import page.analisissentimen
 
 # Fungsi untuk memisahkan hashtag
 def pisahkan_hashtag(kalimat):

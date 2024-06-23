@@ -120,7 +120,7 @@ def main():
         st.write(dt_tweet_count)
 
         # Display pie chart for polarity distribution
-        st.header('< style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Distribusi Sentimen pada Data Hasil Analisis Sentimen')
+        st.header("Distribusi Sentimen pada Data Hasil Analisis Sentimen")
         if 'polarity' in df_tweet.columns:
             display_pie_chart(df_tweet, 'polarity')
         else:

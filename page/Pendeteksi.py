@@ -12,7 +12,6 @@ from page import ConfusionMatrix
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-
 # Set NLTK data directory
 nltk.data.path.append("/path/to/nltk_data")
 
@@ -118,20 +117,6 @@ def hapus_kata_berimbuhan(tweets):
 
     return hapus_kata
 
-# Function to export results to a text file
-def export_to_txt(kata_tidak_baku_unik, output_file):
-    with open(output_file, 'w', encoding='utf-8') as f:
-        for kata in kata_tidak_baku_unik:
-            f.write(f"'{kata}':'....',\n")
-
-def export_to_csv(kata_tidak_baku_unik, output_file):
-    data = []
-    for kata in kata_tidak_baku_unik:
-        data.append([kata, "...."])
-
-    df_output = pd.DataFrame(data, columns=["tidak_baku", "normalisasi"])
-    df_output.to_csv(output_file, index=False, encoding='utf-8')
-
 def cek_prefiks(kata):
     prefiks = ['ber', 'me', 'di', 'ter', 'ke', 'se', 'pe']
 
@@ -186,11 +171,11 @@ def main():
                 # Baca file CSV
                 df_data = pd.read_csv(uploaded_file_data, encoding='utf-8')
 
-            # Tampilkan kolom yang tersedia untuk dipilih
+                # Tampilkan kolom yang tersedia untuk dipilih
                 st.write("Kolom yang tersedia dalam data:")
                 st.write(df_data.columns.tolist())
 
-            # Pilih kolom yang berisi teks
+                # Pilih kolom yang berisi teks
                 kolom_teks = st.selectbox("Pilih kolom yang berisi teks:", df_data.columns)
 
                 # Memisahkan hashtag dari kolom yang dipilih
@@ -214,52 +199,34 @@ def main():
 
                 st.write("Kata Tidak Baku:")
 
-                # Fungsi untuk mengekspor ke file teks dan menghasilkan tautan unduh
-                def export_to_txt(kata_tidak_baku_unik, output_file):
-                    with open(output_file, 'w', encoding='utf-8') as f:
-                        for kata in kata_tidak_baku_unik:
-                            f.write(f"'{kata}':'....',\n")
+                # Export to text file and generate download button
+                def export_to_txt(kata_tidak_baku_unik):
+                    output = "\n".join([f"'{kata}':'....'," for kata in kata_tidak_baku_unik])
+                    return output
 
-                    # Create href tag to download the file
-                    href = get_download_link(output_file, 'TXT')
-
-                    # Display the download link
-                    st.markdown(href, unsafe_allow_html=True)
-
-                # Fungsi untuk mengekspor ke file CSV dan menghasilkan tautan unduh
-                def export_to_csv(kata_tidak_baku_unik, output_file):
-                    data = []
-                    for kata in kata_tidak_baku_unik:
-                        data.append([kata, "...."])
-
+                # Export to CSV file and generate download button
+                def export_to_csv(kata_tidak_baku_unik):
+                    data = [[kata, "...."] for kata in kata_tidak_baku_unik]
                     df_output = pd.DataFrame(data, columns=["tidak_baku", "normalisasi"])
-                    df_output.to_csv(output_file, index=False, encoding='utf-8')
+                    return df_output.to_csv(index=False, encoding='utf-8')
 
-                    # Create href tag to download the file
-                    href = get_download_link(output_file, 'CSV')
+                # Create TXT download button
+                txt_data = export_to_txt(kata_tidak_baku_unik)
+                st.download_button(
+                    label="Download TXT",
+                    data=txt_data,
+                    file_name="kamus_slang_new.txt",
+                    mime="text/plain"
+                )
 
-                    # Display the download link
-                    st.markdown(href, unsafe_allow_html=True)
-
-                # Fungsi untuk menghasilkan tautan unduh file
-                def get_download_link(file_path, file_type):
-                    with open(file_path, 'rb') as file:
-                        contents = file.read()
-                        base64_encoded = base64.b64encode(contents).decode()
-                        href = f'<a href="data:text/{file_type};base64,{base64_encoded}" download="{file_path}">Download {file_type}</a>'
-                    return href
-
-                # Export to text file
-                if st.button("Export ke TXT"):
-                    file_name = "kamus_slang_new.txt"
-                    export_to_txt(kata_tidak_baku_unik, file_name)
-                    st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
-
-                # Export to CSV file
-                if st.button("Export ke CSV"):
-                    file_name = "kamus_slang_new.csv"
-                    export_to_csv(kata_tidak_baku_unik, file_name)
-                    st.success(f"Data kata tidak baku telah diekspor ke file: {file_name}")
+                # Create CSV download button
+                csv_data = export_to_csv(kata_tidak_baku_unik)
+                st.download_button(
+                    label="Download CSV",
+                    data=csv_data,
+                    file_name="kamus_slang_new.csv",
+                    mime="text/csv"
+                )
 
         except Exception as e:
             st.error("Terjadi kesalahan dalam membaca file.")

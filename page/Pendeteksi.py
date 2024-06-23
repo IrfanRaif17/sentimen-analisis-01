@@ -19,10 +19,12 @@ nltk.data.path.append("/path/to/nltk_data")
 # Download 'punkt' if not already downloaded
 if not nltk.data.find('tokenizers/punkt'):
     nltk.download('punkt', download_dir='/path/to/download_directory')
-    
+
+# Download 'stopwords' if not already downloaded
+if not nltk.data.find('corpora/stopwords'):
+    nltk.download('stopwords', download_dir='/path/to/download_directory')
+
 # Set up stopwords and stemmer
-nltk.download('stopwords')
-nltk.download('punkt')
 stopwords = set(nltk.corpus.stopwords.words('indonesian'))
 
 # Fungsi untuk memisahkan hashtag dalam kalimat

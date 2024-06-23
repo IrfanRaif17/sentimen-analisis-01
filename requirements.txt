@@ -8,14 +8,12 @@ nltk==3.8.1
 streamlit==1.27.2
 dask
 pandas==1.5.3
-ast
 unicodedata
 re
 csv
 base64
 string
 urlopen
-word_tokenize
 PorterStemmer
 display_pie_chart
 

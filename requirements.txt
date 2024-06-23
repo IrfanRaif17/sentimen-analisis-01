@@ -7,4 +7,3 @@ scikit-learn==1.2.1
 beautifulsoup4==4.11.2
 nltk==3.8.1
 streamlit==1.27.2
-unicodedata

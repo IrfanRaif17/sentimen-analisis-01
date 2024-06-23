@@ -113,14 +113,14 @@ def main():
         # Display pie chart for label distribution
         st.header("Distribusi Sentimen pada Data Asli")
         display_pie_chart(dt_tweet, 'label')
-        
+
         # Calculate count of identified labels in dt_tweet
         dt_tweet_count = dt_tweet['label'].value_counts()
         st.header("Jumlah Data Sentimen pada Data Asli")
         st.write(dt_tweet_count)
 
         # Display pie chart for polarity distribution
-        st.header("Distribusi Sentimen pada Data Hasil Analisis Sentimen")
+        st.header('< style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Distribusi Sentimen pada Data Hasil Analisis Sentimen')
         if 'polarity' in df_tweet.columns:
             display_pie_chart(df_tweet, 'polarity')
         else:

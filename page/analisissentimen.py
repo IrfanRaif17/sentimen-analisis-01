@@ -17,9 +17,6 @@ nltk.data.path.append("/path/to/nltk_data")
 if not nltk.data.find('tokenizers/punkt'):
     nltk.download('punkt', download_dir='/path/to/download_directory')
 
-# Rest of your imports and code
-import page.analisissentimen
-
 # Fungsi untuk memisahkan hashtag
 def pisahkan_hashtag(kalimat):
     pola = r'#[A-Za-z0-9_]+'

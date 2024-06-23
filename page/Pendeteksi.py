@@ -9,11 +9,17 @@ from nltk.tokenize import word_tokenize
 import base64
 from page import ConfusionMatrix
 
-nltk.download('stopwords')
-
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+
+# Set NLTK data directory
+nltk.data.path.append("/path/to/nltk_data")
+
+# Download 'punkt' if not already downloaded
+if not nltk.data.find('tokenizers/punkt'):
+    nltk.download('punkt', download_dir='/path/to/download_directory')
+    
 # Set up stopwords and stemmer
 nltk.download('stopwords')
 nltk.download('punkt')

@@ -5,6 +5,7 @@ import re
 import string
 import unicodedata
 from nltk.tokenize import word_tokenize
+import os
 
 # Add your custom stylesheet
 with open('styles.css') as f:
@@ -12,6 +13,9 @@ with open('styles.css') as f:
 
 # Set NLTK data directory
 nltk_data_dir = "/path/to/nltk_data"
+
+# Ensure the NLTK data directory exists
+os.makedirs(nltk_data_dir, exist_ok=True)
 nltk.data.path.append(nltk_data_dir)
 
 # Download 'punkt' and 'stopwords' if not already downloaded

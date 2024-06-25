@@ -6,13 +6,14 @@ import string
 import unicodedata
 from nltk.tokenize import word_tokenize
 import os
+import tempfile
 
 # Add your custom stylesheet
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Set NLTK data directory
-nltk_data_dir = "/path/to/nltk_data"
+# Set NLTK data directory to a temporary directory
+nltk_data_dir = tempfile.mkdtemp()
 
 # Ensure the NLTK data directory exists
 os.makedirs(nltk_data_dir, exist_ok=True)
@@ -205,8 +206,7 @@ def main():
 
                 # Export to text file and generate download button
                 def export_to_txt(kata_tidak_baku_unik):
-                    output = "\n".join([f"'{kata}':'....'," for kata in kata_tidak_baku_unik])
-                    return output
+                    return "\n".join(kata_tidak_baku_unik)
 
                 # Export to CSV file and generate download button
                 def export_to_csv(kata_tidak_baku_unik):

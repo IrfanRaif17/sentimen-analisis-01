@@ -2,38 +2,31 @@ import streamlit as st
 import pandas as pd
 import nltk
 import re
+import csv
 import string
 import unicodedata
 from nltk.tokenize import word_tokenize
-import os
-import tempfile
+import base64
+from page import ConfusionMatrix
 
-# Add your custom stylesheet
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Set NLTK data directory to a temporary directory
-nltk_data_dir = tempfile.mkdtemp()
+# Set NLTK data directory
+nltk.data.path.append("/path/to/nltk_data")
 
-# Ensure the NLTK data directory exists
-os.makedirs(nltk_data_dir, exist_ok=True)
-nltk.data.path.append(nltk_data_dir)
+# Download 'punkt' if not already downloaded
+if not nltk.data.find('tokenizers/punkt'):
+    nltk.download('punkt', download_dir='/path/to/download_directory')
 
-# Download 'punkt' and 'stopwords' if not already downloaded
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt', download_dir=nltk_data_dir)
-
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords', download_dir=nltk_data_dir)
+# Download 'stopwords' if not already downloaded
+if not nltk.data.find('corpora/stopwords'):
+    nltk.download('stopwords', download_dir='/path/to/download_directory')
 
 # Set up stopwords and stemmer
 stopwords = set(nltk.corpus.stopwords.words('indonesian'))
 
-# Function to split hashtags in a sentence
+# Fungsi untuk memisahkan hashtag dalam kalimat
 def pisahkan_hashtag(kalimat):
     pola = r'#[A-Za-z0-9_]+'
     hasil = re.findall(pola, kalimat)
@@ -43,32 +36,32 @@ def pisahkan_hashtag(kalimat):
         kalimat = kalimat.replace(hashtag, kata_terpisah)
     return kalimat
 
-# Function to remove punctuation using regex
+# Fungsi untuk menghapus tanda baca menggunakan regex
 def hapus_tanda_baca(kata):
     return re.sub(r'[^\w\s-]', '', kata)
 
-# Function to preprocess text column
+# Fungsi untuk melakukan preprocessing pada kolom teks
 def preprocess(text):
-    # Remove non-ASCII characters
+    # Menghapus karakter non-ASCII
     text = remove_non_ascii(text)
 
     # Remove URLs, mentions, and hashtags
     text = re.sub(r'http\S+|www\S+|https\S+', '', text)
     text = re.sub(r'\@\w+|\#', '', text)
 
-    # Tokenize sentence into words
+    # Tokenisasi kalimat menjadi kata-kata
     kata_kata = word_tokenize(text)
 
-    # Remove punctuation from each word
+    # Menghapus tanda baca dari setiap kata
     kata_kata_tanpa_tanda_baca = [hapus_tanda_baca(kata) for kata in kata_kata]
 
-    # Join words back into a sentence
+    # Menggabungkan kata-kata kembali menjadi kalimat
     kalimat_tanpa_tanda_baca = ' '.join(kata_kata_tanpa_tanda_baca)
 
-    # Replace punctuation with a single space using regex
+    # Menggantikan tanda baca dengan spasi tunggal menggunakan regex
     kalimat_final = re.sub(r'(?<=[^\w\s-])', ' ', kalimat_tanpa_tanda_baca)
 
-    # Replace multiple spaces with a single space using regex
+    # Menggantikan multiple spasi dengan satu spasi menggunakan regex
     kalimat_tanpa_spasi_ganda = re.sub(r'\s+', ' ', kalimat_final)
 
     # Remove special characters and digits
@@ -81,16 +74,15 @@ def preprocess(text):
     # Remove whitespace leading & trailing
     kalimat_final = kalimat_final.strip()
 
-    # Remove single characters
+    # Remove single char
     kalimat_final = re.sub(r"\b[a-zA-Z]\b", "", kalimat_final)
 
     return kalimat_final
 
-# Function to remove non-ASCII characters
 def remove_non_ascii(text):
     return ''.join(c for c in unicodedata.normalize('NFKD', text) if unicodedata.category(c) != 'Mn')
 
-# Function to load KBBI dictionary from file
+# Fungsi untuk memuat kamus KBBI dari file
 def muat_kamus_kbbi(file):
     extension = file.name.split(".")[-1]
     if extension == "csv":
@@ -104,14 +96,13 @@ def muat_kamus_kbbi(file):
     else:
         raise ValueError("Format file tidak didukung. Harap gunakan file dengan format CSV, TXT, XLS, atau XLSX.")
 
-# Function to find non-standard words
+# Fungsi untuk mencari kata tidak baku
 def cari_kata_tidak_baku(kalimat, kamus):
     kata_kalimat = set(kalimat.split())
     kata_baku = set(kamus["kata"])
     kata_tidak_baku = kata_kalimat.difference(kata_baku)
     return list(kata_tidak_baku)
 
-# Function to remove words with affixes
 def hapus_kata_berimbuhan(tweets):
     hapus_kata = []
     for tweet in tweets:
@@ -126,80 +117,84 @@ def hapus_kata_berimbuhan(tweets):
 
     return hapus_kata
 
-# Function to check prefixes
 def cek_prefiks(kata):
     prefiks = ['ber', 'me', 'di', 'ter', 'ke', 'se', 'pe']
+
     for pref in prefiks:
         if kata.startswith(pref):
             return pref
+
     return None
 
-# Function to check suffixes
 def cek_sufiks(kata):
     sufiks = ['kan', 'an', 'lah', 'nya']
+
     for suf in sufiks:
         if kata.endswith(suf):
             return suf
+
     return None
 
-# Function to check infixes
 def cek_infiks(kata):
     infiks = ['el', 'em']
+
     for inf in infiks:
         if inf in kata:
             return inf
+
     return None
 
-# Function to check confixes
 def cek_konfiks(kata):
     konfiks = ['me', 'mem', 'men', 'meng', 'meny', 'pe', 'pem', 'pen', 'peng', 'peny']
+
     for kon in konfiks:
         if kata.startswith(kon) and kata.endswith('i'):
             return kon + 'i'
+
     return None
 
 def main():
     st.markdown('<p style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Pendeteksi Kata Slang</p>', unsafe_allow_html=True)
     st.write("Upload file CSV, TXT, XLS, or XLSX untuk memuat kamus KBBI.")
 
-    # Upload KBBI dictionary file
+    # Upload file kamus KBBI
     uploaded_file_kamus = st.file_uploader("Upload file kamus KBBI", type=["csv", "txt", "xls", "xlsx"])
 
     if uploaded_file_kamus is not None:
         try:
             kamus_kbbi = muat_kamus_kbbi(uploaded_file_kamus)
 
-            # Upload data file to be processed
+            # Unggah file
             uploaded_file_data = st.file_uploader("Upload file data yang akan diproses", type=["csv"])
             
             if uploaded_file_data is not None:
-                # Read CSV file
+                # Baca file CSV
                 df_data = pd.read_csv(uploaded_file_data, encoding='utf-8')
 
-                # Display available columns for selection
+                # Tampilkan kolom yang tersedia untuk dipilih
                 st.write("Kolom yang tersedia dalam data:")
                 st.write(df_data.columns.tolist())
 
-                # Select column containing text
+                # Pilih kolom yang berisi teks
                 kolom_teks = st.selectbox("Pilih kolom yang berisi teks:", df_data.columns)
 
-                # Split hashtags from selected column
+                # Memisahkan hashtag dari kolom yang dipilih
                 df_data['split_hashtag'] = df_data[kolom_teks].apply(pisahkan_hashtag)
 
-                # Preprocess the text
+                # Preprocessing
                 df_data['preprocessing'] = df_data['split_hashtag'].apply(preprocess)
 
-                # Display preprocessing results
+                # Menampilkan hasil preprocessing
                 st.write("Hasil Preprocessing:")
                 st.dataframe(df_data)
 
-                # Find non-standard words
+                # Mencari kata tidak baku
                 df_data['kata_tidak_baku'] = df_data['preprocessing'].apply(lambda x: cari_kata_tidak_baku(x, kamus_kbbi))
 
-                # Remove words with affixes
+                # Menghapus kata berimbuhan
                 df_data['kata_tidak_baku_clean'] = df_data['kata_tidak_baku'].apply(hapus_kata_berimbuhan)
 
-                # Collect all unique non-standard words
+                # Mengumpulkan semua kata tidak baku menjadi satu dan menghapus kata yang sama
                 kata_tidak_baku_unik = set([kata for sublist in df_data['kata_tidak_baku_clean'] for kata in sublist])
 
                 st.write("Kata Tidak Baku:")

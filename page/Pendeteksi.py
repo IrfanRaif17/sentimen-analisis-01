@@ -206,7 +206,8 @@ def main():
 
                 # Export to text file and generate download button
                 def export_to_txt(kata_tidak_baku_unik):
-                    return "\n".join(kata_tidak_baku_unik)
+                    output = "\n".join([f"'{kata}':'....'," for kata in kata_tidak_baku_unik])
+                    return output
 
                 # Export to CSV file and generate download button
                 def export_to_csv(kata_tidak_baku_unik):

@@ -103,16 +103,15 @@ def main():
 
     # Unggah file
     uploaded_file_data = st.file_uploader("Upload file data yang akan diproses", type=["csv"])
-            
     if uploaded_file_data is not None:
-        # Baca file CSV
+        # Read CSV file
         data = pd.read_csv(uploaded_file_data, encoding='utf-8')
 
-        # Tampilkan kolom yang tersedia untuk dipilih
+        # Display available columns for selection
         st.write("Kolom yang tersedia dalam data:")
         st.write(data.columns.tolist())
 
-        # Pilih kolom yang berisi teks
+                # Select column containing text
         kolom_teks = st.selectbox("Pilih kolom yang berisi teks:", data.columns)
         
         # Periksa apakah kolom yang dipilih oleh pengguna ada dalam DataFrame
@@ -120,7 +119,7 @@ def main():
             data['pisah_hashtag&kata'] = data[kolom_teks].apply(pisahkan_hashtag)
             data['text_cleaning'] = data['pisah_hashtag&kata'].apply(lambda x: preprocess_text(x))
             st.write("Hasil setelah cleaning:")
-            st.write(data[['text', 'pisah_hashtag&kata', 'text_cleaning']])
+            st.dataframe(data)
             
             # Upload bahan normalisasi
             uploaded_normalisasi = st.file_uploader("Upload bahan normalisasi TXT", type="txt")

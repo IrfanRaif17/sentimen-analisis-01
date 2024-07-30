@@ -15,9 +15,9 @@ import page.ConfusionMatrix
 
 PAGES = {
     "Beranda": page.home,
-    "Pendeteksi Kata Slang": page.Pendeteksi,
-    "Analisis Sentimen InSet":page.analisissentimen,
-    "Evaluasi Matrix":page.ConfusionMatrix,
+    "Pendeteksi Kata Tidak Baku": page.Pendeteksi,
+    "Analisis Sentimen InSet": page.analisissentimen,
+    "Confusion Matrix": page.ConfusionMatrix,
 }
 
 def set_page_config():
@@ -43,14 +43,14 @@ def set_page_config():
 def main():
     set_page_config()
 
-    st.sidebar.markdown('<p style="font-family: Times New Roman; font-size: 24px; font-weight: bold;">Natural Language Processing</p>', unsafe_allow_html=True)
+    st.sidebar.markdown('<p style="font-family: Times New Roman; font-size: 24px; font-weight: bold;">Pendeteksi dan Analisis Sentimen</p>', unsafe_allow_html=True)
     
-    page = st.sidebar.radio("Pre-processing", list(PAGES.keys()))
+    page = st.sidebar.selectbox("Pilih Menu", list(PAGES.keys()))
 
     with st.spinner(f"Loading {page} ..."):
         PAGES[page].main()
     
-    st.sidebar.markdown('<p style="font-family: Times New Roman; font-size: 24px; font-weight: bold;">About App</p>', unsafe_allow_html=True)
+    st.sidebar.markdown('<p style="font-family: Times New Roman; font-size: 24px; font-weight: bold;">APP About</p>', unsafe_allow_html=True)
     
     st.sidebar.info(
         """

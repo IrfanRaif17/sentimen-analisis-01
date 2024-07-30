@@ -6,7 +6,7 @@ from page import ConfusionMatrix
 
 # Then use it in your code
 PAGES = {
-    "Evaluasi Matrix": ConfusionMatrix,
+    "Confusion Matrix": ConfusionMatrix,
     # Other pages
 }
 
@@ -87,7 +87,7 @@ def display_dataframe(dt_tweet, df_tweet):
     st.write(dt_tweet, df_tweet)
 
 def main():
-    st.markdown('<p style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Evaluasi Matrix InSet</p>', unsafe_allow_html=True)
+    st.markdown('<p style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Confusion Matrix</p>', unsafe_allow_html=True)
 
     dt_tweet_file = st.file_uploader("Upload file asli", type=["csv", "xlsx"])
     df_tweet_file = st.file_uploader("Upload file hasil analisis", type=["csv", "xlsx"])

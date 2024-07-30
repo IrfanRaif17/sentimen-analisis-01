@@ -1,14 +1,12 @@
 import streamlit as st
-import os
-import re
-import ast
-import csv
-import nltk
-import string
-import tempfile
-import unicodedata
 import pandas as pd
+import nltk
+import re
+import string
+import unicodedata
 from nltk.tokenize import word_tokenize
+import os
+import tempfile
 
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -113,15 +111,15 @@ def cari_kata_tidak_baku(kalimat, kamus):
     return list(kata_tidak_baku)
 
 # Function to remove words with affixes
-def hapus_kata_berimbuhan(kata_kata, kamus_baku):
+def hapus_kata_berimbuhan(kata_kata):
     kata_tanpa_imbuhan = []
     for kata in kata_kata:
         pref = cek_prefiks(kata)
         suf = cek_sufiks(kata)
         inf = cek_infiks(kata)
         kon = cek_konfiks(kata)
-        if not pref and not suf and not inf and not kon and kata not in kamus_baku:
-            kata_tanpa_imbuhan.append(kata)  # Menambah kata ke dalam list jika tidak memiliki imbuhan dan bukan kata baku
+        if not pref and not suf and not inf and not kon:
+            kata_tanpa_imbuhan.append(kata)  # Menambah kata ke dalam list jika tidak memiliki imbuhan
     return kata_tanpa_imbuhan
 
 # Function to check prefixes
@@ -156,36 +154,6 @@ def cek_konfiks(kata):
             return kon + 'i'
     return None
 
-# Membaca file teks dan mengubahnya menjadi kamus
-def baca_kamus_dari_file(nama_file):
-    with open(nama_file, mode='r', encoding='utf-8') as file:
-        isi = file.read().strip()
-        kamus = ast.literal_eval(isi)
-    return kamus
-
-# Membaca file CSV dan mengubahnya menjadi kamus
-def baca_kamus_dari_csv(nama_file):
-    kamus = {}
-    with open(nama_file, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)  # Melewati header
-        for baris in reader:
-            tidak_baku, baku = baris
-            kamus[tidak_baku] = baku
-    return kamus
-
-# Menulis kamus ke file teks
-def tulis_kamus_ke_file(nama_file, kamus):
-    with open(nama_file, mode='w', encoding='utf-8') as file:
-        file.write(str(kamus))
-
-# Fungsi untuk mengisi otomatis kamus baru
-def isi_otomatis_kamus(kamus_awal, kamus_baru):
-    for kata_tidak_baku in kamus_baru.keys():
-        if kata_tidak_baku in kamus_awal:
-            kamus_baru[kata_tidak_baku] = kamus_awal[kata_tidak_baku]
-    return kamus_baru
-
 def main():
     st.markdown('<p style="font-family: Times New Roman; font-size: 32px; font-weight: bold;">Pendeteksi Kata Tidak Baku</p>', unsafe_allow_html=True)
     st.write("Upload file CSV, TXT, XLS, or XLSX untuk memuat kamus KBBI.")
@@ -212,10 +180,10 @@ def main():
                 kolom_teks = st.selectbox("Pilih kolom yang berisi teks:", df_data.columns)
 
                 # Split hashtags from selected column
-                df_data['preprocessing'] = df_data[kolom_teks].apply(pisahkan_hashtag)
+                df_data['split_hashtag'] = df_data[kolom_teks].apply(pisahkan_hashtag)
 
                 # Preprocess the text
-                df_data['preprocessing'] = df_data['preprocessing'].apply(preprocess)
+                df_data['preprocessing'] = df_data['split_hashtag'].apply(preprocess)
 
                 # Display preprocessing results
                 st.write("Hasil Preprocessing:")
@@ -224,38 +192,26 @@ def main():
                 # Find non-standard words
                 df_data['kata_tidak_baku'] = df_data['preprocessing'].apply(lambda x: cari_kata_tidak_baku(x, kamus_kbbi))
 
-                # Remove words with affixes and standard words
-                df_data['kata_tidak_baku_clean'] = df_data['kata_tidak_baku'].apply(lambda x: hapus_kata_berimbuhan(x, kamus_kbbi["kata"]))
+                # Remove words with affixes
+                df_data['kata_tidak_baku_clean'] = df_data['kata_tidak_baku'].apply(hapus_kata_berimbuhan)
 
                 # Collect all unique non-standard words
                 kata_tidak_baku_unik = set([kata for sublist in df_data['kata_tidak_baku_clean'] for kata in sublist])
 
                 st.write("Kata Tidak Baku:")
 
-                # Create dictionary with '....' as values
-                kata_tidak_baku_dict = {kata: '....' for kata in kata_tidak_baku_unik}
-
-                # Membaca kamus awal dan kamus slang dari file
-                kamus_awal = baca_kamus_dari_file('Bahan/Final_1.txt')
-                kamus_slang = baca_kamus_dari_csv('Bahan/kamus_alay.csv')
-
-                # Menggabungkan kamus awal dengan kamus slang
-                kamus_awal.update(kamus_slang)
-
-                # Mengisi otomatis kamus baru
-                kamus_baru = isi_otomatis_kamus(kamus_awal, kata_tidak_baku_dict)
-
                 # Export to text file and generate download button
-                def export_to_txt(kamus_baru):
-                    return str(kamus_baru)
+                def export_to_txt(kata_tidak_baku_unik):
+                    return "\n".join(kata_tidak_baku_unik)
 
                 # Export to CSV file and generate download button
-                def export_to_csv(kamus_baru):
-                    df_output = pd.DataFrame(kamus_baru.items(), columns=["tidak_baku", "normalisasi"])
+                def export_to_csv(kata_tidak_baku_unik):
+                    data = [[kata, "...."] for kata in kata_tidak_baku_unik]
+                    df_output = pd.DataFrame(data, columns=["tidak_baku", "normalisasi"])
                     return df_output.to_csv(index=False, encoding='utf-8')
 
                 # Create TXT download button
-                txt_data = export_to_txt(kamus_baru)
+                txt_data = export_to_txt(kata_tidak_baku_unik)
                 st.download_button(
                     label="Download TXT",
                     data=txt_data,
@@ -264,7 +220,7 @@ def main():
                 )
 
                 # Create CSV download button
-                csv_data = export_to_csv(kamus_baru)
+                csv_data = export_to_csv(kata_tidak_baku_unik)
                 st.download_button(
                     label="Download CSV",
                     data=csv_data,
